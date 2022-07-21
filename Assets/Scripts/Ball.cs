@@ -9,6 +9,7 @@ public class Ball : MonoBehaviour
     private Camera _mainCam;
     private float _ballWidth;
     private GameManager _gameManagerScript;
+    public GameObject explosion;
 
     void Start()
     {
@@ -24,38 +25,7 @@ public class Ball : MonoBehaviour
 
     }
 
-/*
-    private void CheckPosition()
-    {
-        float sceneWidth = mainCam.orthographicSize * 2 * mainCam.aspect;
-        float sceneHeight = mainCam.orthographicSize * 2;
-
-        float sceneRightEdge = sceneWidth/2;
-        float sceneLeftEdge = sceneRightEdge * -1;
-        float sceneTopEdge = sceneHeight/2;
-        float sceneBottomEdge = sceneTopEdge * -1;
-
-        var opposite = -rb.velocity;
-        Debug.Log(opposite);
-
-        if (transform.position.x > sceneRightEdge - ballWidth/2)
-        {
-            rb.AddForce(opposite);
-        }
-        if (transform.position.x < sceneLeftEdge + ballWidth/2)
-        {
-            rb.AddForce(opposite);
-        }
-        if (transform.position.y > sceneTopEdge - ballWidth/2)
-        {
-            rb.AddForce(opposite * 2, ForceMode2D.Impulse);
-        }
-        if (transform.position.y < sceneBottomEdge + ballWidth/2)
-        {
-            rb.AddForce(opposite);
-        }
-    }*/
-
+    //launching ball at the start of the game
     public void LaunchBall(float ballSpeed)
     {
         _rb.AddForce (Vector2.up * ballSpeed);
@@ -63,12 +33,26 @@ public class Ball : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other) 
     {
+        //if ball hits the bottom border
+        //TODO add logic if there are several balls in the game
         if (other.tag == "BottomBorder")
         {
-            _rb.velocity = Vector2.zero;
-            _gameManagerScript.inPlay = false;
+            _rb.velocity = Vector2.zero; //reset the ball velocity just in case
+            _gameManagerScript.inPlay = false; //The game state into false
 
             //Destroy(gameObject);
+        }
+    }
+
+    private void OnCollisionEnter2D(Collision2D other) 
+    {
+        //if ball hit the brick
+        //TODO impelemnt increasing score
+        if (other.gameObject.tag == "Brick")
+        {
+            GameObject newExplosion = Instantiate(explosion, other.transform.position, other.transform.rotation);
+            Destroy(newExplosion, 1.2f);
+            Destroy(other.gameObject);
         }
     }
 }

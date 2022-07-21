@@ -27,6 +27,7 @@ public class GameManager : MonoBehaviour
         PlayerInput();
     }
 
+    //reset ball position if we hit the bottom
     private void ResetBallPosition()
     {
         if (!inPlay)
@@ -36,6 +37,7 @@ public class GameManager : MonoBehaviour
 
     }
 
+    //player input to start the game
     private void PlayerInput()
     {
         if (Input.GetButtonDown("Jump") && !inPlay)
