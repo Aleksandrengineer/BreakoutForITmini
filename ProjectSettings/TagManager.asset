@@ -9,6 +9,10 @@ TagManager:
   - Ball
   - BottomBorder
   - Game Manager
+  - Score Text
+  - Lives Text
+  - Game Over Panel
+  - Extra Life
   layers:
   - Default
   - TransparentFX

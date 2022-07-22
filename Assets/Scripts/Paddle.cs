@@ -7,11 +7,16 @@ public class Paddle : MonoBehaviour
     public float paddleSpeed;
     private Camera _mainCam;
     private float _paddleWidth;
+
+    private GameManager _gameManagerScript;
+
     // Start is called before the first frame update
     void Start()
     {
         _mainCam = Camera.main;
         _paddleWidth = this.transform.localScale.x;
+
+        _gameManagerScript = GameObject.FindGameObjectWithTag("Game Manager").GetComponent<GameManager>();
     }
 
     // Update is called once per frame
@@ -23,6 +28,11 @@ public class Paddle : MonoBehaviour
 
     private void PaddleMovement()
     {
+        if(_gameManagerScript.gameOver)
+        {
+            return;
+        }
+
         float horizontal = Input.GetAxis("Horizontal");
         transform.Translate (Vector2.right * horizontal * Time.deltaTime * paddleSpeed);
         CheckPosition();
@@ -43,6 +53,16 @@ public class Paddle : MonoBehaviour
         if (transform.position.x < sceneLeftEdge + _paddleWidth/2)
         {
             transform.position = new Vector2(sceneLeftEdge + _paddleWidth/2, transform.position.y);
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        //logic for the extra life power up
+        if (other.tag == "Extra Life")
+        {
+            _gameManagerScript.UpdateLive(1);
+            Destroy(other.gameObject);
         }
     }
 }

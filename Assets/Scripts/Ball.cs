@@ -38,6 +38,8 @@ public class Ball : MonoBehaviour
         if (other.tag == "BottomBorder")
         {
             _rb.velocity = Vector2.zero; //reset the ball velocity just in case
+
+            _gameManagerScript.UpdateLive(-1); // substract live if ball hit bottom;
             _gameManagerScript.inPlay = false; //The game state into false
 
             //Destroy(gameObject);
@@ -47,11 +49,20 @@ public class Ball : MonoBehaviour
     private void OnCollisionEnter2D(Collision2D other) 
     {
         //if ball hit the brick
-        //TODO impelemnt increasing score
         if (other.gameObject.tag == "Brick")
         {
+
+            _gameManagerScript.DropPowerUp(other.transform);
+
+            //Updating the score
+            _gameManagerScript.UpdateScore(other.gameObject.GetComponent<Brick>().score);
+            _gameManagerScript.UpdateBricksCount();
+
+            //Particle effects
             GameObject newExplosion = Instantiate(explosion, other.transform.position, other.transform.rotation);
             Destroy(newExplosion, 1.2f);
+
+            //Destroying the brick
             Destroy(other.gameObject);
         }
     }
