@@ -5,27 +5,24 @@ using UnityEngine;
 public class Paddle : MonoBehaviour
 {
     public float paddleSpeed;
+    [SerializeField]
     private Camera _mainCam;
+    [SerializeField]
     private float _paddleWidth;
-
+    [SerializeField]
     private GameManager _gameManagerScript;
 
-    // Start is called before the first frame update
     void Start()
     {
-        _mainCam = Camera.main;
         _paddleWidth = this.transform.localScale.x;
-
-        _gameManagerScript = GameObject.FindGameObjectWithTag("Game Manager").GetComponent<GameManager>();
     }
 
-    // Update is called once per frame
     void Update()
     {
         PaddleMovement();
-
     }
 
+    //Player input to control paddle
     private void PaddleMovement()
     {
         if(_gameManagerScript.gameOver)
@@ -35,9 +32,11 @@ public class Paddle : MonoBehaviour
 
         float horizontal = Input.GetAxis("Horizontal");
         transform.Translate (Vector2.right * horizontal * Time.deltaTime * paddleSpeed);
+
         CheckPosition();
     }
 
+    //clamp the paddle between screen size
     private void CheckPosition()
     {
         //this checking for the screen border considering th border of the camera size
@@ -50,6 +49,7 @@ public class Paddle : MonoBehaviour
         {
             transform.position = new Vector2(sceneRightEdge - _paddleWidth/2, transform.position.y);
         }
+
         if (transform.position.x < sceneLeftEdge + _paddleWidth/2)
         {
             transform.position = new Vector2(sceneLeftEdge + _paddleWidth/2, transform.position.y);
@@ -61,8 +61,11 @@ public class Paddle : MonoBehaviour
         //logic for the extra life power up
         if (other.tag == "Extra Life")
         {
-            _gameManagerScript.UpdateLive(1);
-            Destroy(other.gameObject);
+            _gameManagerScript.UpdateLive(1); // incrementing life
+            
+            _gameManagerScript.PlayPowerUpGetAudio(); //play powerup get audio
+
+            Destroy(other.gameObject); //deleting the powerUP
         }
     }
 }

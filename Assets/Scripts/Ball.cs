@@ -4,19 +4,20 @@ using UnityEngine;
 
 public class Ball : MonoBehaviour
 {
-    //public float ballSpeed;
+    public float ballSpeed;
+    [SerializeField]
     private Rigidbody2D _rb;
+    [SerializeField]
     private Camera _mainCam;
+    [SerializeField]
     private float _ballWidth;
+    [SerializeField]
     private GameManager _gameManagerScript;
-    public GameObject explosion;
+
 
     void Start()
     {
-        _rb = GetComponent<Rigidbody2D>();
-        _mainCam = Camera.main;
         _ballWidth = this.transform.localScale.x;
-        _gameManagerScript = GameObject.FindGameObjectWithTag("Game Manager").GetComponent<GameManager>();
     }
 
     // Update is called once per frame
@@ -33,37 +34,57 @@ public class Ball : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other) 
     {
-        //if ball hits the bottom border
-        //TODO add logic if there are several balls in the game
         if (other.tag == "BottomBorder")
         {
-            _rb.velocity = Vector2.zero; //reset the ball velocity just in case
-
             _gameManagerScript.UpdateLive(-1); // substract live if ball hit bottom;
+            
             _gameManagerScript.inPlay = false; //The game state into false
 
-            //Destroy(gameObject);
+            _gameManagerScript.PlayBottomBorderHitAudio();
         }
     }
 
     private void OnCollisionEnter2D(Collision2D other) 
     {
-        //if ball hit the brick
         if (other.gameObject.tag == "Brick")
         {
+            //Referencing brickscript
+            Brick brickScript = other.gameObject.GetComponent<Brick>();
 
-            _gameManagerScript.DropPowerUp(other.transform);
+            //Check wether to break the brick or not
+            if (brickScript.hitsToBreak > 1)
+            {
+                brickScript.BreakBrick();
+            }
 
-            //Updating the score
-            _gameManagerScript.UpdateScore(other.gameObject.GetComponent<Brick>().score);
-            _gameManagerScript.UpdateBricksCount();
+            else
+            {
+                //check wether to drop powerup or not
+                _gameManagerScript.DropPowerUp(other.transform);
 
-            //Particle effects
-            GameObject newExplosion = Instantiate(explosion, other.transform.position, other.transform.rotation);
-            Destroy(newExplosion, 1.2f);
+                //Updating the score
+                _gameManagerScript.UpdateScore(brickScript.score);
 
-            //Destroying the brick
-            Destroy(other.gameObject);
+                //Update brick count
+                _gameManagerScript.UpdateBricksCount();
+
+                //Particle effects
+                brickScript.PlayParticleEffect();
+
+                //Destroying the brick
+                Destroy(other.gameObject);
+            }
+            _gameManagerScript.PlayBallHitBrickSound();
+        }
+
+        if (other.gameObject.tag == "Paddle")
+        {
+            _gameManagerScript.PlayPaddleHitAudio();
+        }
+
+        if (other.gameObject.tag == "Border")
+        {
+            _gameManagerScript.PlayWallHitAudio();
         }
     }
 }

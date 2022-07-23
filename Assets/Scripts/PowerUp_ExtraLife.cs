@@ -6,16 +6,22 @@ public class PowerUp_ExtraLife : MonoBehaviour
 {
     //speed of the power up moving down
     public float speed = 0.5f;
+    [SerializeField]
     private Camera _mainCam;
+    [SerializeField]
+    private GameManager _gameManagerScript;
     void Start()
     {
         _mainCam = Camera.main;
+
+        _gameManagerScript = GameObject.FindGameObjectWithTag("Game Manager").GetComponent<GameManager>();
     }
 
     // Update is called once per frame
     void Update()
     {
         MovingDown();
+        
         CheckPosition();
     }
     private void MovingDown()

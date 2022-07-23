@@ -13,23 +13,55 @@ public class GameManager : MonoBehaviour
     public bool gameOver = false;
     //prefabs references
     public GameObject extraLifePowerUp;
+    //array of levels
+    public Transform[] levels;
 
     //Ball references
+    [SerializeField]
     private GameObject _ball;
+    [SerializeField]
     private Ball _ballScript;
     //Paddle references
+    [SerializeField]
     private GameObject _paddle;
+    [SerializeField]
     private Paddle _paddleScript;
 
     //UI variables
+    [SerializeField]
     private Text _scoreText;
+    [SerializeField]
     private int _score;
+    [SerializeField]
     private Text _livesText;
+    [SerializeField]
     private int _lives;
-    [HideInInspector]
-    public GameObject gameOverPanel;
+    [SerializeField]
+    private GameObject _gameOverPanel;
+    [SerializeField]
+    private GameObject _pauseMenu;
+    
+    //Values for the game continuation
+    [SerializeField]
+    private int _numberOfBricks;
+    public int currentLevelIndex;
+    [SerializeField]
+    private bool _isGamePaused;
 
-    private int numberOfBricks;
+
+    //Values for the audio
+    [HideInInspector]
+    public AudioSource[] ballHitBrickAudio; //audios for the ball hitting brick
+    [HideInInspector]
+    public AudioSource paddleHitAudio;
+    [HideInInspector]
+    public AudioSource wallHitAudio;
+    [HideInInspector]
+    public AudioSource bottomBorderHitAudio;
+    [HideInInspector]
+    public AudioSource[] powerUpAudio;
+    [HideInInspector]
+    public AudioSource pauseAudio;
 
     public void UpdateLive(int liveValue)
     {
@@ -62,48 +94,89 @@ public class GameManager : MonoBehaviour
 
     public void UpdateBricksCount()
     {
-        numberOfBricks --;
+        _numberOfBricks --;
 
-        if(numberOfBricks <= 0)
+        if(_numberOfBricks <= 0)
         {
+            if (currentLevelIndex >= levels.Length)
+            {
             GameOver();
+            }
+            else
+            {
+                inPlay = false; //reseting game state to waiting.
+                Invoke("LoadLevel", 1f); //changing level afte 3 second delay
+            }
         }
     }
 
     //Power Up drop Function
     public void DropPowerUp(Transform spawnPosition)
     {
-        int dropChance = Random.Range(1, 100);
+        int dropChance = Random.Range(1, 100); //chance to drop powerUP
         if (dropChance <= 50)
         {
-            Instantiate(extraLifePowerUp, spawnPosition.position, spawnPosition.rotation);
+            Instantiate(extraLifePowerUp, spawnPosition.position, spawnPosition.rotation); //creating powerup
+            PlayPowerUpAppearAudio(); // playing powerup appear audio
         }
+    }
+
+    ///Functions for the audio playback
+    
+    public void PlayBallHitBrickSound()
+    {
+        AudioSource audioSource = new AudioSource();
+
+        int n = Random.Range(0, ballHitBrickAudio.Length);
+
+        audioSource = ballHitBrickAudio[n];
+
+        audioSource.Play();
+    }
+    public void PlayWallHitAudio()
+    {
+        wallHitAudio.Play();
+    }
+
+    public void PlayPaddleHitAudio()
+    {
+        paddleHitAudio.Play();
+    }
+
+    public void PlayBottomBorderHitAudio()
+    {
+        bottomBorderHitAudio.Play();
+    }
+    
+    public void PlayPowerUpAppearAudio()
+    {
+        powerUpAudio[0].Play();
+    }
+    public void PlayPowerUpGetAudio()
+    {
+        powerUpAudio[1].Play();
     }
 
     // Start is called before the first frame update
     private void Start()
     {
-        _paddle = GameObject.FindGameObjectWithTag("Paddle");
-        _paddleScript = _paddle.GetComponent<Paddle>();
+        LoadLevel();
 
-        _ball = GameObject.FindGameObjectWithTag("Ball");
-        _ballScript = _ball.GetComponent<Ball>();
-
-        _scoreText = GameObject.FindGameObjectWithTag("Score Text").GetComponent<Text>();
         _score = 0;
         _scoreText.text = "Score: " + _score;
 
-        _livesText = GameObject.FindGameObjectWithTag("Lives Text").GetComponent<Text>();
         _lives = 3;
         _livesText.text = "Lives: " + _lives;
 
-        numberOfBricks = GameObject.FindGameObjectsWithTag("Brick").Length;
+        _isGamePaused = false;
+
     }
 
     // Update is called once per frame
     private void Update()
     {
         ResetBallPosition();
+
         PlayerInput();
     }
 
@@ -117,6 +190,7 @@ public class GameManager : MonoBehaviour
 
         if (!inPlay)
         {
+            _ball.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
             _ball.transform.position = new Vector2(_paddle.transform.position.x, _paddle.transform.position.y + _paddle.transform.localScale.y / 4);
         }
 
@@ -130,11 +204,43 @@ public class GameManager : MonoBehaviour
             inPlay = true;
             _ballScript.LaunchBall(_ballSpeed);
         }
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            _isGamePaused = !_isGamePaused;
+            PauseGame();
+        }
     }
 
     private void GameOver()
     {
         gameOver = true;
-        gameOverPanel.SetActive(true);
+
+        _gameOverPanel.SetActive(true);
+    }
+
+    private void LoadLevel()
+    {
+        Instantiate(levels[currentLevelIndex], Vector2.zero, Quaternion.identity);
+
+        _numberOfBricks = GameObject.FindGameObjectsWithTag("Brick").Length;
+
+        currentLevelIndex ++;
+    }
+
+    private void PauseGame ()
+    {
+        if(_isGamePaused)
+        {
+            Time.timeScale = 0f;
+            _pauseMenu.SetActive(true);
+            pauseAudio.Play();
+        }
+        else 
+        {
+            Time.timeScale = 1;
+            _pauseMenu.SetActive(false);
+            pauseAudio.Play();
+        }
     }
 }
